@@ -75,6 +75,6 @@ Generates a network of international collaboration.
 The network connects the researcher with all their collaborators.
 }
 \examples{
-id = wos("A-8820-2008")
+id = wos("C-2482-2012")
 i.map(id, country.size.proportional = TRUE)
 }

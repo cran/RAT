@@ -1,10 +1,10 @@
 #####RAT - Research Assessment Tools
-#####Version 0.1.0 (2021-12-01)
+#####Version 0.1.1 (2021-12-04)
 #####By Pedro Cardoso & Stefano Mammola
 #####Maintainer: pedro.cardoso@helsinki.fi
 #####Reference: Cardoso, P., Fukushima, C.S. & Mammola, S. (subm.) Quantifying the international collaboration of researchers and research institutions.
-#####Changed from v0.0.0:
-#####Everything
+#####Changed from v0.1.0:
+#####Corrected errors in CRAN
 
 #####required packages
 library("ggplot2")
@@ -34,7 +34,7 @@ globalVariables(c("map", "world", "region", "x", "y"))
 #' @param coll Web of Science collections to include.
 #' @details The data downloaded can be used in h.index and i.index functions to avoid constant downloads.
 #' @return A list with publication data.
-#' @examples wos("A-8820-2008")
+#' @examples wos("C-2482-2012")
 #' @export
 wos <- function(id, user = NULL, pass = NULL, coll = c("SCI", "SSCI", "AHCI", "ISTP", "ISSHP","BSCI", "BHCI", "ESCI")){
 
@@ -47,14 +47,13 @@ wos <- function(id, user = NULL, pass = NULL, coll = c("SCI", "SSCI", "AHCI", "I
     query = id
   }
 
-  id = try(wosr::pull_wos(query = query, editions = coll, sid = auth(username = user, password = pass)), silent = TRUE)
-
-  if(class(id) == "try-error"){
-    warning("Could not connect to server.")
-    return()
-  } else {
-    return(id)
-  }
+  id = tryCatch({
+    wosr::pull_wos(query = query, editions = coll, sid = wosr::auth(username = user, password = pass), silent = TRUE)
+  },
+  error = function(cond) {
+    message("Could not connect to server.")
+  })
+  return(id)
 }
 
 #' H-index.
@@ -64,7 +63,7 @@ wos <- function(id, user = NULL, pass = NULL, coll = c("SCI", "SSCI", "AHCI", "I
 #' @details The h-index is a measure of scientific output calculated as the h number of papers with more than h citations (Hirsch, 2005).
 #' @return The h-index value. If fulldata = TRUE a list with full data.
 #' @references Hirsch, J.E. (2005). An index to quantify an individual's scientific research output. PNAS, 102: 16569–16572. doi:10.1073/pnas.0507655102.
-#' @examples id = wos("A-8820-2008")
+#' @examples id = wos("C-2482-2012")
 #' h.index(id)
 #' @export
 h.index <- function(id, fulldata = FALSE){
@@ -98,10 +97,8 @@ h.index <- function(id, fulldata = FALSE){
 #' @details The i-index is a measure of scientific collaborations across countries. Calculated as the i number of co-author countries in more than i papers (Cardoso et al. subm.).
 #' @return The i-index value. If fulldata = TRUE a list with full data.
 #' @references Cardoso, P., Fukushima, C.S. & Mammola, S. (subm.) Quantifying the international collaboration attitude of scholars.
-#' @examples stefano = wos("I-1518-2019")
-#' i.index(stefano)
-#' pedro = wos("A-8820-2008")
-#' i.index(pedro, fulldata = TRUE)
+#' @examples id = wos("C-2482-2012")
+#' i.index(id, fulldata = TRUE)
 #' @export
 i.index <- function(id, fulldata = FALSE){
 
@@ -147,7 +144,7 @@ i.index <- function(id, fulldata = FALSE){
 #' @param homeCountry.point.size An integer value defining the size of vertex representing the home country.
 #' @details The network connects the researcher with all their collaborators.
 #' @return A map with the network of collaborations.
-#' @examples id = wos("A-8820-2008")
+#' @examples id = wos("C-2482-2012")
 #' i.map(id, country.size.proportional = TRUE)
 #' @export
 i.map <- function(id, homeCountry = NULL,

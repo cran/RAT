@@ -21,10 +21,8 @@ Calculates the i-index based on Web of Science data.
 The i-index is a measure of scientific collaborations across countries. Calculated as the i number of co-author countries in more than i papers (Cardoso et al. subm.).
 }
 \examples{
-stefano = wos("I-1518-2019")
-i.index(stefano)
-pedro = wos("A-8820-2008")
-i.index(pedro, fulldata = TRUE)
+id = wos("C-2482-2012")
+i.index(id, fulldata = TRUE)
 }
 \references{
 Cardoso, P., Fukushima, C.S. & Mammola, S. (subm.) Quantifying the international collaboration attitude of scholars.

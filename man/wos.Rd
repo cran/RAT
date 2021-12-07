@@ -30,5 +30,5 @@ Downloads data from Web of Science.
 The data downloaded can be used in h.index and i.index functions to avoid constant downloads.
 }
 \examples{
-wos("A-8820-2008")
+wos("C-2482-2012")
 }

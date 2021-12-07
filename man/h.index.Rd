@@ -21,7 +21,7 @@ Calculates the h-index based on Web of Science data.
 The h-index is a measure of scientific output calculated as the h number of papers with more than h citations (Hirsch, 2005).
 }
 \examples{
-id = wos("A-8820-2008")
+id = wos("C-2482-2012")
 h.index(id)
 }
 \references{
