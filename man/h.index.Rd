@@ -23,6 +23,7 @@ The h-index is a measure of scientific output calculated as the h number of pape
 \examples{
 id = wos("C-2482-2012")
 h.index(id)
+h.index(id, TRUE)
 }
 \references{
 Hirsch, J.E. (2005). An index to quantify an individual's scientific research output. PNAS, 102: 16569–16572. doi:10.1073/pnas.0507655102.

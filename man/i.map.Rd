@@ -7,6 +7,7 @@
 i.map(
   id,
   homeCountry = NULL,
+  ext = c(-180, 180, -90, 90),
   sea.col = "black",
   country.col = "grey",
   country.border.col = "black",
@@ -30,6 +31,8 @@ i.map(
 \item{id}{A list obtained with function 'wos'.}
 
 \item{homeCountry}{A character string specifying the country of origin of the researcher. Look at map$country for the complete list. If NULL, the country with most hits in Web of Science is used.}
+
+\item{ext}{extent of the bounding box of the map in decimal degrees (minX, maxX, minY, maxY).}
 
 \item{sea.col}{A character indicating the color of the sea.}
 

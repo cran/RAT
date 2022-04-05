@@ -4,10 +4,25 @@
 \alias{i.index}
 \title{I-index.}
 \usage{
-i.index(id, fulldata = FALSE)
+i.index(
+  id,
+  r = FALSE,
+  h = FALSE,
+  homeCountry = NULL,
+  logbase = 2,
+  fulldata = FALSE
+)
 }
 \arguments{
 \item{id}{A list obtained with function 'wos'.}
+
+\item{r}{if TRUE the i-index is multiplied by the r-index, i.e., weighted according to the expected distribution of GDP values of collaborating countries.}
+
+\item{h}{if TRUE the i-index is divided by the h-index to create a measure independent of the latter.}
+
+\item{homeCountry}{A character string specifying the country of origin of the researcher to calculate the r-index if r = TRUE. Look at map$country for the complete list. If NULL, the country with most hits in Web of Science is used.}
+
+\item{logbase}{The log base for building the octaves of the r-index if r = TRUE.}
 
 \item{fulldata}{if TRUE returns publication and citation counts.}
 }
@@ -18,11 +33,15 @@ The i-index value. If fulldata = TRUE a list with full data.
 Calculates the i-index based on Web of Science data.
 }
 \details{
-The i-index is a measure of scientific collaborations across countries. Calculated as the i number of co-author countries in more than i papers (Cardoso et al. subm.).
+The i-index (internationalization) is a measure of scientific collaborations across countries. Calculated as the i number of co-author countries in more than i papers (Cardoso et al. subm.).
+The weighted version of the index multiplies its raw value by the square rooted difference between observed and expected distribution of GDP per capita of countries constituting the index (function RAT::represent).
+The standardized distribution divides the i-index (weighted or not) by the h-index as these two are usually correlated.
 }
 \examples{
 id = wos("C-2482-2012")
-i.index(id, fulldata = TRUE)
+i.index(id)
+i.index(id, r = TRUE)
+i.index(id, r = TRUE, h = TRUE, logbase = 10, fulldata = TRUE)
 }
 \references{
 Cardoso, P., Fukushima, C.S. & Mammola, S. (subm.) Quantifying the international collaboration attitude of scholars.

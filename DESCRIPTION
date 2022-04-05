@@ -1,7 +1,7 @@
 Package: RAT
 Title: Research Assessment Tools
-Version: 0.1.1
-Date: 2021-12-04
+Version: 0.2.0
+Date: 2022-04-05
 Authors@R: c(
     person("Pedro", "Cardoso", email = "pedro.cardoso@helsinki.fi", role = c("aut", "cre")),
     person("Stefano", "Mammola", role = c("aut")))
@@ -13,9 +13,9 @@ License: GPL-3
 LazyData: true
 RoxygenNote: 7.1.2
 NeedsCompilation: no
-Packaged: 2021-12-06 17:07:25 UTC; ungol
+Packaged: 2022-04-05 06:51:25 UTC; ungol
 Author: Pedro Cardoso [aut, cre],
   Stefano Mammola [aut]
 Maintainer: Pedro Cardoso <pedro.cardoso@helsinki.fi>
 Repository: CRAN
-Date/Publication: 2021-12-07 08:30:02 UTC
+Date/Publication: 2022-04-05 08:00:05 UTC

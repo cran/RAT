@@ -3,6 +3,7 @@
 export(h.index)
 export(i.index)
 export(i.map)
+export(r.index)
 export(wos)
 import(ggplot2)
 import(graphics)
