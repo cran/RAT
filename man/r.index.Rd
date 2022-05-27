@@ -4,10 +4,10 @@
 \alias{r.index}
 \title{R-index.}
 \usage{
-r.index(id, homeCountry = NULL, logbase = 2, plot = FALSE)
+r.index(biblio, homeCountry = NULL, logbase = 2, plot = FALSE)
 }
 \arguments{
-\item{id}{A list obtained with function 'wos'.}
+\item{biblio}{A data.frame exported from Web of Science as tab delimited text, full record.}
 
 \item{homeCountry}{A character string specifying the country of origin of the researcher. Look at map$country for the complete list. If NULL, the country with most hits in Web of Science is used.}
 
@@ -19,17 +19,17 @@ r.index(id, homeCountry = NULL, logbase = 2, plot = FALSE)
 The r-index value.
 }
 \description{
-Calculates the r-index based on Web of Science data.
+Calculates the r-index (representativeness).
 }
 \details{
 The r-index (representativeness) is a measure of the overlap between observed and expected distributions of GDP per capita of collaborating countries (Cardoso et al. subm.).
 The abundance distribution of log(GDP per capita) of countries in the collaborators list is calculated (using octaves). This is compared with the global distribution of GDPs by using the overlap of both lists.
 }
 \examples{
-id = wos("C-2482-2012")
-r.index(id)
-r.index(id, logbase = 10, plot = TRUE)
+data(biblio)
+r.index(biblio)
+r.index(biblio, plot = TRUE)
 }
 \references{
-Cardoso, P., Fukushima, C.S. & Mammola, S. (subm.) Quantifying the international collaboration attitude of scholars.
+Cardoso, P., Fukushima, C.S. & Mammola, S. (subm.) Quantifying the internationalization and representativeness of research.
 }

@@ -4,10 +4,10 @@
 \alias{h.index}
 \title{H-index.}
 \usage{
-h.index(id, fulldata = FALSE)
+h.index(biblio, fulldata = FALSE)
 }
 \arguments{
-\item{id}{A list obtained with function 'wos'.}
+\item{biblio}{A data.frame exported from Web of Science as tab delimited text, full record.}
 
 \item{fulldata}{if TRUE returns publication and citation counts.}
 }
@@ -15,15 +15,15 @@ h.index(id, fulldata = FALSE)
 The h-index value. If fulldata = TRUE a list with full data.
 }
 \description{
-Calculates the h-index based on Web of Science data.
+Calculates the h-index.
 }
 \details{
 The h-index is a measure of scientific output calculated as the h number of papers with more than h citations (Hirsch, 2005).
 }
 \examples{
-id = wos("C-2482-2012")
-h.index(id)
-h.index(id, TRUE)
+data(biblio)
+h.index(biblio)
+h.index(biblio, TRUE)
 }
 \references{
 Hirsch, J.E. (2005). An index to quantify an individual's scientific research output. PNAS, 102: 16569–16572. doi:10.1073/pnas.0507655102.

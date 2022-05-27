@@ -1,28 +1,24 @@
 #####RAT - Research Assessment Tools
-#####Version 0.2.0 (2022-04-05)
+#####Version 0.3.0 (2022-05-27)
 #####By Pedro Cardoso & Stefano Mammola
 #####Maintainer: pedro.cardoso@helsinki.fi
-#####Reference: Cardoso, P., Fukushima, C.S. & Mammola, S. (subm.) Quantifying the international collaboration of researchers and research institutions.
-#####Changed from v0.1.1:
-#####Added function r.index
-#####Added parameters r, h, homeCountry, and logbase to i.index
-#####Added parameter ext to i.map
-#####Added algorithm to standardize names
-#####Added algorithm to identify matches when country name is not recognized
+#####Reference: Cardoso, P., Fukushima, C.S. & Mammola, S. (subm.) Quantifying the internationalization and representativeness of research.
+#####Changed from v0.2.0:
+#####Deprecated function wos and built own code from WoS export
 
 #####required packages
 library("ggplot2")
 library("graphics")
 library("mapproj")
 library("stats")
+library("stringr")
 library("utils")
-library("wosr")
 #' @import ggplot2
 #' @import graphics
 #' @import mapproj
 #' @import stats
+#' @import stringr
 #' @import utils
-#' @importFrom wosr auth pull_wos
 
 globalVariables(c("map", "world", "region", "x", "y"))
 
@@ -44,69 +40,65 @@ stdCountries <- function(countries){
   return(countries)
 }
 
+#Function to get country counts
+getCountries <- function(biblio){
+
+  if(!("C1" %in% colnames(biblio)))
+    stop("biblio should be a tab-delimited file from WoS, exported using the option export as full record. Are you importing a WoS file with a different format?")
+
+  #prepare data
+  data(map, envir = environment())
+  countries = matrix(NA, nrow = nrow(biblio), ncol = nrow(map))
+  colnames(countries) = map$country
+
+  #get country count
+  for(i in 1:nrow(countries))
+    countries[i, ] = str_detect(biblio$C1[i], map$country)
+  countries = ifelse(countries, 1, 0)
+  colnames(countries) = map$stdCountry
+  countries = t(rowsum(t(countries), colnames(countries)))
+  countries[countries > 1] = 1
+  countries = colSums(countries)
+  countries = countries[order(countries, decreasing = TRUE)]
+  countries = countries[which(countries > 0)]
+
+  return(countries)
+}
+
 ################################################################################
 ################################MAIN FUNCTIONS##################################
 ################################################################################
 
-#' Web of Science.
-#' @description Downloads data from Web of Science.
-#' @param id ResearcherID or name of the researcher as 'Surname, First name'. Beware that in case of multiple authors with the same name all publications will be returned. In alternative, use the search notation of Web of Science for regular searches beyond an author's name.
-#' @param user username for Web of Science. Not needed if you have access through your institution.
-#' @param pass password or Web of Science. Not needed if you have access through your institution.
-#' @param coll Web of Science collections to include.
-#' @details The data downloaded can be used in h.index and i.index functions to avoid constant downloads.
-#' @return A list with publication data.
-#' @examples wos("C-2482-2012")
-#' @export
-wos <- function(id, user = NULL, pass = NULL, coll = c("SCI", "SSCI", "AHCI", "ISTP", "ISSHP","BSCI", "BHCI", "ESCI")){
-
-  if(!grepl("=", id)){
-    if(grepl("\\d", id))
-      query = paste("AI =", id)
-    else
-      query = paste("AU =", id)
-  } else {
-    query = id
-  }
-
-  id = tryCatch({
-    wosr::pull_wos(query = query, editions = coll, sid = wosr::auth(username = user, password = pass), silent = TRUE)
-  },
-  error = function(cond) {
-    message("Could not connect to server.")
-  })
-  return(id)
-}
-
 #' H-index.
-#' @description Calculates the h-index based on Web of Science data.
-#' @param id A list obtained with function 'wos'.
+#' @description Calculates the h-index.
+#' @param biblio A data.frame exported from Web of Science as tab delimited text, full record.
 #' @param fulldata if TRUE returns publication and citation counts.
 #' @details The h-index is a measure of scientific output calculated as the h number of papers with more than h citations (Hirsch, 2005).
 #' @return The h-index value. If fulldata = TRUE a list with full data.
 #' @references Hirsch, J.E. (2005). An index to quantify an individual's scientific research output. PNAS, 102: 16569–16572. doi:10.1073/pnas.0507655102.
-#' @examples id = wos("C-2482-2012")
-#' h.index(id)
-#' h.index(id, TRUE)
+#' @examples data(biblio)
+#' h.index(biblio)
+#' h.index(biblio, TRUE)
 #' @export
-h.index <- function(id, fulldata = FALSE){
+h.index <- function(biblio, fulldata = FALSE){
 
-  if(is.null(id)) return()
+  countries = getCountries(biblio)
+
+  #order biblio
+  biblio = biblio[order(biblio$TC, decreasing = TRUE), ]
 
   #get citation data from each paper
-  citations = id$publication$tot_cites
-  citations = citations[order(citations, decreasing = TRUE)]
+  citations = biblio$TC
 
   #calculate h as the h papers with more than h citations
   h = length(which(citations >= 1:length(citations)))
 
   #extra data
   if(fulldata){
-    publications = id$publication[, c('title', 'doi', 'tot_cites')]
-    colnames(publications)[3] = 'citations'
-    publications = publications[order(publications$citations, decreasing = TRUE),]
+    publications = biblio[, c("AU", "PY", "TI", "TC")]
+    colnames(publications) = c("Authors", "Year", "Title", "Citations")
     publicationCount = nrow(publications)
-    citations = sum(publications$citations)
+    citations = sum(publications$Citations)
     h = list(h_index = h, n_publications = publicationCount, citations = citations, publications = publications)
   }
 
@@ -114,8 +106,8 @@ h.index <- function(id, fulldata = FALSE){
 }
 
 #' I-index.
-#' @description Calculates the i-index based on Web of Science data.
-#' @param id A list obtained with function 'wos'.
+#' @description Calculates the i-index (internationalization).
+#' @param biblio A data.frame exported from Web of Science as tab delimited text, full record.
 #' @param r if TRUE the i-index is multiplied by the r-index, i.e., weighted according to the expected distribution of GDP values of collaborating countries.
 #' @param h if TRUE the i-index is divided by the h-index to create a measure independent of the latter.
 #' @param homeCountry A character string specifying the country of origin of the researcher to calculate the r-index if r = TRUE. Look at map$country for the complete list. If NULL, the country with most hits in Web of Science is used.
@@ -125,33 +117,26 @@ h.index <- function(id, fulldata = FALSE){
 #' The weighted version of the index multiplies its raw value by the square rooted difference between observed and expected distribution of GDP per capita of countries constituting the index (function RAT::represent).
 #' The standardized distribution divides the i-index (weighted or not) by the h-index as these two are usually correlated.
 #' @return The i-index value. If fulldata = TRUE a list with full data.
-#' @references Cardoso, P., Fukushima, C.S. & Mammola, S. (subm.) Quantifying the international collaboration attitude of scholars.
-#' @examples id = wos("C-2482-2012")
-#' i.index(id)
-#' i.index(id, r = TRUE)
-#' i.index(id, r = TRUE, h = TRUE, logbase = 10, fulldata = TRUE)
+#' @references Cardoso, P., Fukushima, C.S. & Mammola, S. (subm.) Quantifying the internationalization and representativeness of research.
+#' @examples data(biblio)
+#' i.index(biblio)
+#' i.index(biblio, r = TRUE, fulldata = TRUE)
+#' i.index(biblio, r = TRUE, h = TRUE, logbase = 10, fulldata = TRUE)
 #' @export
-i.index <- function(id, r = FALSE, h = FALSE, homeCountry = NULL, logbase = 2, fulldata = FALSE){
+i.index <- function(biblio, r = FALSE, h = FALSE, homeCountry = NULL, logbase = 2, fulldata = FALSE){
 
-  if(is.null(id)) return()
-
-  #get country data from each paper
-  countries = id$address[, c('ut', 'country')]
-  countries$country = stdCountries(countries$country)
-  countries = unique(countries)
-  countries = table(countries$country)
-  countries = countries[order(countries, decreasing = TRUE)]
+  countries = getCountries(biblio)
 
   #calculate i as the i countries in more than i papers
   i = length(which(countries >= 1:length(countries)))
 
   #weight by GDP distribution
   if(r)
-    i = i * r.index(id, homeCountry, logbase)
+    i = i * r.index(biblio, homeCountry, logbase)
 
   #standardize by h-index
   if(h)
-    i = i / h.index(id)
+    i = i / h.index(biblio)
 
   #extra data
   if(fulldata){
@@ -163,33 +148,27 @@ i.index <- function(id, r = FALSE, h = FALSE, homeCountry = NULL, logbase = 2, f
 }
 
 #' R-index.
-#' @description Calculates the r-index based on Web of Science data.
-#' @param id A list obtained with function 'wos'.
+#' @description Calculates the r-index (representativeness).
+#' @param biblio A data.frame exported from Web of Science as tab delimited text, full record.
 #' @param homeCountry A character string specifying the country of origin of the researcher. Look at map$country for the complete list. If NULL, the country with most hits in Web of Science is used.
 #' @param logbase The log base for building the octaves.
 #' @param plot plots the expected and observed distribution of collaborations according to GDP.
 #' @details The r-index (representativeness) is a measure of the overlap between observed and expected distributions of GDP per capita of collaborating countries (Cardoso et al. subm.).
 #' The abundance distribution of log(GDP per capita) of countries in the collaborators list is calculated (using octaves). This is compared with the global distribution of GDPs by using the overlap of both lists.
 #' @return The r-index value.
-#' @references Cardoso, P., Fukushima, C.S. & Mammola, S. (subm.) Quantifying the international collaboration attitude of scholars.
-#' @examples id = wos("C-2482-2012")
-#' r.index(id)
-#' r.index(id, logbase = 10, plot = TRUE)
+#' @references Cardoso, P., Fukushima, C.S. & Mammola, S. (subm.) Quantifying the internationalization and representativeness of research.
+#' @examples data(biblio)
+#' r.index(biblio)
+#' r.index(biblio, plot = TRUE)
 #' @export
-r.index <- function(id, homeCountry = NULL, logbase = 2, plot = FALSE){
+r.index <- function(biblio, homeCountry = NULL, logbase = 2, plot = FALSE){
 
-  if(is.null(id)) return()
+  countries = getCountries(biblio)
 
-  #get country data from each paper and exclude home country
-  countries = id$address[, c('ut', 'country')]
-  countries$country = stdCountries(countries$country)
-  countries = unique(countries)$country
-  if(is.null(homeCountry)){
-    count = table(countries)
-    count = count[order(count, decreasing = TRUE)]
-    homeCountry = names(count)[1] #take the country with most matches
-  }
-  countries = countries[countries != homeCountry]
+  #exclude home country
+  if(is.null(homeCountry))
+    homeCountry = names(countries)[1] #take the country with most matches
+  countries = countries[-which(names(countries) == homeCountry)]
 
   #return 0 if no countries beyond own country
   if (length(countries) == 0)
@@ -198,11 +177,11 @@ r.index <- function(id, homeCountry = NULL, logbase = 2, plot = FALSE){
   #observed GDP distribution by octaves
   gdp = c()
   for(i in 1:length(countries))
-    gdp[i] = as.numeric(map[which(map$stdCountry == countries[i])[1], 3])
+    gdp = c(gdp, rep(as.numeric(map[which(map$stdCountry == names(countries[i]))[1], 3]), countries[i]))
   gdp = as.integer(log(gdp, logbase))
   gdp = data.frame(table(gdp)/sum(table(gdp)))
 
-  #global GDP distribution by octaves
+  #expected GDP distribution by octaves
   global = as.numeric(unique(map[, 2:3])$gdpPerCapita)
   global = as.integer(log(global, logbase))
   global = data.frame(table(global)/sum(table(global)))
@@ -222,7 +201,7 @@ r.index <- function(id, homeCountry = NULL, logbase = 2, plot = FALSE){
 
 #' Map of international collaboration.
 #' @description Generates a network of international collaboration.
-#' @param id A list obtained with function 'wos'.
+#' @param biblio A data.frame exported from Web of Science as tab delimited text, full record.
 #' @param homeCountry A character string specifying the country of origin of the researcher. Look at map$country for the complete list. If NULL, the country with most hits in Web of Science is used.
 #' @param ext extent of the bounding box of the map in decimal degrees (minX, maxX, minY, maxY).
 #' @param sea.col A character indicating the color of the sea.
@@ -244,60 +223,55 @@ r.index <- function(id, homeCountry = NULL, logbase = 2, plot = FALSE){
 #' @param homeCountry.point.size An integer value defining the size of vertex representing the home country.
 #' @details The network connects the researcher with all their collaborators.
 #' @return A map with the network of collaborations.
-#' @examples id = wos("C-2482-2012")
-#' i.map(id, country.size.proportional = TRUE)
+#' @examples data(biblio)
+#' i.map(biblio, country.size.proportional = TRUE)
 #' @export
-i.map <- function(id, homeCountry = NULL,
-                  ext = c(-180, 180, -90, 90),
-                  sea.col = "black",
+i.map <- function(biblio, homeCountry = NULL,
+                  ext = c(-180, 180, -55, 90),
+                  sea.col = "white",
                   country.col = "grey",
                   country.border.col = "black",
                   country.border.tick = 0.3,
                   line.curvature = 0.1,
                   line.size = 0.8,
                   line.alpha = 0.4,
-                  line.color = "yellow",
-                  country.point.color = "yellow",
-                  country.point.line  = "yellow",
+                  line.color = "black",
+                  country.point.color = "white",
+                  country.point.line  = "black",
                   country.point.alpha  = 0.8,
                   country.size.proportional = FALSE,
                   country.point.size = 1,
-                  homeCountry.point.color = "purple",
+                  homeCountry.point.color = "darkgrey",
                   homeCountry.point.line  = "black",
                   homeCountry.point.alpha  = 0.8,
                   homeCountry.point.size = 5
 ){
 
-  if(is.null(id)) return()
+  countries = getCountries(biblio)
+
+  #get home country if needed
+  if(is.null(homeCountry))
+    homeCountry = names(countries)[1] #take the country with most matches
 
   #Get world data
   data(map, envir = environment())
   world <- ggplot2::map_data("world")
 
-  #get country data from each paper
-  count = i.index(id, fulldata = TRUE)$countries
-
-  #estimate HomeCountry if needed
-  if(is.null(homeCountry))
-    homeCountry = names(count)[1] #take the country with most matches
-
   #add coordinates
-  countries <- map[map[,1] %in% names(count), ]
-  homeCountry <- countries[countries$country %in% homeCountry, ]
+  map <- map[map[,1] %in% names(countries), ]
+  homeCountry <- map[map$country == homeCountry, ]
 
   #Set size for countries
-  if(country.size.proportional == TRUE){
-    country.point.size = count[sort(names(count))]
-    country.point.size = country.point.size[names(country.point.size) %in% countries$country]
-  }
+  if(country.size.proportional == TRUE)
+    country.point.size = countries[order(names(countries))]
   if(is.null(homeCountry.point.size))
     homeCountry.point.size = sqrt(max(country.point.size, na.rm = TRUE))
 
   #convert as.numeric
   homeCountry$x <- as.numeric(homeCountry$x)
   homeCountry$y <- as.numeric(homeCountry$y)
-  countries$x   <- as.numeric(countries$x)
-  countries$y   <- as.numeric(countries$y)
+  map$x   <- as.numeric(map$x)
+  map$y   <- as.numeric(map$y)
 
   #Make the plot
   net <- ggplot() +
@@ -309,21 +283,21 @@ i.map <- function(id, homeCountry = NULL,
              size = country.border.tick) +
 
     #map range
-    xlim(ext[1],ext[2])+
-    ylim(ext[3],ext[4])+
+    xlim(ext[1], ext[2]) +
+    ylim(ext[3], ext[4]) +
 
     #plot line
-    geom_curve(data = countries, aes(x = homeCountry$x,
-                                     y = homeCountry$y,
-                                     xend = jitter(x, 0.000001), #jitter to avoid problems with identical points (if any)
-                                     yend = jitter(y, 0.000001)), #jitter to avoid problems with identical points (if any)
-               curvature = line.curvature,
-               size = line.size,
-               alpha = line.alpha,
-               color = line.color) +
+    geom_curve(data = map, aes(x = homeCountry$x,
+                               y = homeCountry$y,
+                               xend = jitter(x, 0.000001), #jitter to avoid problems with identical points (if any)
+                               yend = jitter(y, 0.000001)), #jitter to avoid problems with identical points (if any)
+                               curvature = line.curvature,
+                               size = line.size,
+                               alpha = line.alpha,
+                               color = line.color) +
 
     #plot countries
-    geom_point(data = countries,
+    geom_point(data = map,
                aes(x = x, y = y),
                size = sqrt(country.point.size),
                colour = country.point.line,
@@ -361,11 +335,23 @@ i.map <- function(id, homeCountry = NULL,
 #' Matrix matching country names, coordinates and GDP.
 #'
 #' A dataset that links author countries with the map using the coordinates and with GDP per capita.
-#' Current GDP values are for 2020 (World Bank data: https://data.worldbank.org/indicator/NY.GDP.PCAP.PP.CD )
+#' Current GDP values are for 2020 (World Bank data: https://data.worldbank.org/indicator/NY.GDP.PCAP.PP.CD)
 #'
 #' @docType data
 #' @keywords datasets
 #' @name map
 #' @usage data(map)
-#' @format A matrix with countries and corresponding coordinates.
+#' @format A data.frame with countries and corresponding coordinates.
 NULL
+
+#' biblio file for testing.
+#'
+#' A dataset from Web of Science, exported as tab delimited text, full record.
+#'
+#' @docType data
+#' @keywords datasets
+#' @name biblio
+#' @usage data(biblio)
+#' @format A data.frame with bibliographical data.
+NULL
+

@@ -5,7 +5,7 @@
 \title{I-index.}
 \usage{
 i.index(
-  id,
+  biblio,
   r = FALSE,
   h = FALSE,
   homeCountry = NULL,
@@ -14,7 +14,7 @@ i.index(
 )
 }
 \arguments{
-\item{id}{A list obtained with function 'wos'.}
+\item{biblio}{A data.frame exported from Web of Science as tab delimited text, full record.}
 
 \item{r}{if TRUE the i-index is multiplied by the r-index, i.e., weighted according to the expected distribution of GDP values of collaborating countries.}
 
@@ -30,7 +30,7 @@ i.index(
 The i-index value. If fulldata = TRUE a list with full data.
 }
 \description{
-Calculates the i-index based on Web of Science data.
+Calculates the i-index (internationalization).
 }
 \details{
 The i-index (internationalization) is a measure of scientific collaborations across countries. Calculated as the i number of co-author countries in more than i papers (Cardoso et al. subm.).
@@ -38,11 +38,11 @@ The weighted version of the index multiplies its raw value by the square rooted 
 The standardized distribution divides the i-index (weighted or not) by the h-index as these two are usually correlated.
 }
 \examples{
-id = wos("C-2482-2012")
-i.index(id)
-i.index(id, r = TRUE)
-i.index(id, r = TRUE, h = TRUE, logbase = 10, fulldata = TRUE)
+data(biblio)
+i.index(biblio)
+i.index(biblio, r = TRUE, fulldata = TRUE)
+i.index(biblio, r = TRUE, h = TRUE, logbase = 10, fulldata = TRUE)
 }
 \references{
-Cardoso, P., Fukushima, C.S. & Mammola, S. (subm.) Quantifying the international collaboration attitude of scholars.
+Cardoso, P., Fukushima, C.S. & Mammola, S. (subm.) Quantifying the internationalization and representativeness of research.
 }

@@ -5,13 +5,13 @@
 \alias{map}
 \title{Matrix matching country names, coordinates and GDP.}
 \format{
-A matrix with countries and corresponding coordinates.
+A data.frame with countries and corresponding coordinates.
 }
 \usage{
 data(map)
 }
 \description{
 A dataset that links author countries with the map using the coordinates and with GDP per capita.
-Current GDP values are for 2020 (World Bank data: https://data.worldbank.org/indicator/NY.GDP.PCAP.PP.CD )
+Current GDP values are for 2020 (World Bank data: https://data.worldbank.org/indicator/NY.GDP.PCAP.PP.CD)
 }
 \keyword{datasets}

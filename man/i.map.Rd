@@ -5,30 +5,30 @@
 \title{Map of international collaboration.}
 \usage{
 i.map(
-  id,
+  biblio,
   homeCountry = NULL,
-  ext = c(-180, 180, -90, 90),
-  sea.col = "black",
+  ext = c(-180, 180, -55, 90),
+  sea.col = "white",
   country.col = "grey",
   country.border.col = "black",
   country.border.tick = 0.3,
   line.curvature = 0.1,
   line.size = 0.8,
   line.alpha = 0.4,
-  line.color = "yellow",
-  country.point.color = "yellow",
-  country.point.line = "yellow",
+  line.color = "black",
+  country.point.color = "white",
+  country.point.line = "black",
   country.point.alpha = 0.8,
   country.size.proportional = FALSE,
   country.point.size = 1,
-  homeCountry.point.color = "purple",
+  homeCountry.point.color = "darkgrey",
   homeCountry.point.line = "black",
   homeCountry.point.alpha = 0.8,
   homeCountry.point.size = 5
 )
 }
 \arguments{
-\item{id}{A list obtained with function 'wos'.}
+\item{biblio}{A data.frame exported from Web of Science as tab delimited text, full record.}
 
 \item{homeCountry}{A character string specifying the country of origin of the researcher. Look at map$country for the complete list. If NULL, the country with most hits in Web of Science is used.}
 
@@ -78,6 +78,6 @@ Generates a network of international collaboration.
 The network connects the researcher with all their collaborators.
 }
 \examples{
-id = wos("C-2482-2012")
-i.map(id, country.size.proportional = TRUE)
+data(biblio)
+i.map(biblio, country.size.proportional = TRUE)
 }
