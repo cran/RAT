@@ -28,7 +28,7 @@ i.map(
 )
 }
 \arguments{
-\item{biblio}{A data.frame exported from Web of Science as tab delimited text, full record.}
+\item{biblio}{A data.frame exported from Web of Science as tab delimited text, full record OR a vector with country frequencies where names are the country names.}
 
 \item{homeCountry}{A character string specifying the country of origin of the researcher. Look at map$country for the complete list. If NULL, the country with most hits in Web of Science is used.}
 
@@ -80,4 +80,8 @@ The network connects the researcher with all their collaborators.
 \examples{
 data(biblio)
 i.map(biblio, country.size.proportional = TRUE)
+
+biblio = c(5, 3, 2, 1)
+names(biblio) = c("Finland", "Portugal", "Brazil", "Italy")
+i.map(biblio)
 }

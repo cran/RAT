@@ -7,7 +7,7 @@
 r.index(biblio, homeCountry = NULL, logbase = 2, plot = FALSE)
 }
 \arguments{
-\item{biblio}{A data.frame exported from Web of Science as tab delimited text, full record.}
+\item{biblio}{A data.frame exported from Web of Science as tab delimited text, full record OR a vector with country frequencies where names are the country names.}
 
 \item{homeCountry}{A character string specifying the country of origin of the researcher. Look at map$country for the complete list. If NULL, the country with most hits in Web of Science is used.}
 
@@ -22,14 +22,18 @@ The r-index value.
 Calculates the r-index (representativeness).
 }
 \details{
-The r-index (representativeness) is a measure of the overlap between observed and expected distributions of GDP per capita of collaborating countries (Cardoso et al. subm.).
+The r-index (representativeness) is a measure of the overlap between observed and expected distributions of GDP per capita of collaborating countries (Cardoso et al. 2022).
 The abundance distribution of log(GDP per capita) of countries in the collaborators list is calculated (using octaves). This is compared with the global distribution of GDPs by using the overlap of both lists.
 }
 \examples{
 data(biblio)
 r.index(biblio)
 r.index(biblio, plot = TRUE)
+
+biblio = c(5, 3, 2, 1)
+names(biblio) = c("Finland", "Portugal", "Brazil", "Italy")
+r.index(biblio, plot = TRUE)
 }
 \references{
-Cardoso, P., Fukushima, C.S. & Mammola, S. (subm.) Quantifying the internationalization and representativeness of research.
+Cardoso, P., Fukushima, C.S. & Mammola, S. (2022) Quantifying the internationalization and representativeness in research. Trends in Ecology and Evolution, 37: 725-728.
 }

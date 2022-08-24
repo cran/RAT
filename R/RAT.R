@@ -1,10 +1,10 @@
 #####RAT - Research Assessment Tools
-#####Version 0.3.0 (2022-05-27)
+#####Version 0.3.1 (2022-08-23)
 #####By Pedro Cardoso & Stefano Mammola
 #####Maintainer: pedro.cardoso@helsinki.fi
-#####Reference: Cardoso, P., Fukushima, C.S. & Mammola, S. (subm.) Quantifying the internationalization and representativeness of research.
-#####Changed from v0.2.0:
-#####Deprecated function wos and built own code from WoS export
+#####Reference: Cardoso, P., Fukushima, C.S. & Mammola, S. (2022) Quantifying the internationalization and representativeness in research. Trends in Ecology and Evolution, 37: 725-728.
+#####Changed from v0.3.0:
+#####Added option to provide country frequencies in most functions.
 
 #####required packages
 library("ggplot2")
@@ -43,24 +43,29 @@ stdCountries <- function(countries){
 #Function to get country counts
 getCountries <- function(biblio){
 
-  if(!("C1" %in% colnames(biblio)))
-    stop("biblio should be a tab-delimited file from WoS, exported using the option export as full record. Are you importing a WoS file with a different format?")
+  if(is.vector(biblio)){
+    names(biblio) = stdCountries(names(biblio))
+    countries = biblio[order(biblio, decreasing = TRUE)]
+  } else if(is.data.frame(biblio) & "C1" %in% colnames(biblio)) {
 
-  #prepare data
-  data(map, envir = environment())
-  countries = matrix(NA, nrow = nrow(biblio), ncol = nrow(map))
-  colnames(countries) = map$country
+    #prepare data
+    data(map, envir = environment())
+    countries = matrix(NA, nrow = nrow(biblio), ncol = nrow(map))
+    colnames(countries) = map$country
 
-  #get country count
-  for(i in 1:nrow(countries))
-    countries[i, ] = str_detect(biblio$C1[i], map$country)
-  countries = ifelse(countries, 1, 0)
-  colnames(countries) = map$stdCountry
-  countries = t(rowsum(t(countries), colnames(countries)))
-  countries[countries > 1] = 1
-  countries = colSums(countries)
-  countries = countries[order(countries, decreasing = TRUE)]
-  countries = countries[which(countries > 0)]
+    #get country count
+    for(i in 1:nrow(countries))
+      countries[i, ] = str_detect(biblio$C1[i], map$country)
+    countries = ifelse(countries, 1, 0)
+    colnames(countries) = map$stdCountry
+    countries = t(rowsum(t(countries), colnames(countries)))
+    countries[countries > 1] = 1
+    countries = colSums(countries)
+    countries = countries[order(countries, decreasing = TRUE)]
+    countries = countries[which(countries > 0)]
+  } else {
+    stop("biblio should be a tab-delimited file from WoS, exported using the option export as full record OR a vector with names = countries. Are you importing a file with a different format?")
+  }
 
   return(countries)
 }
@@ -81,8 +86,6 @@ getCountries <- function(biblio){
 #' h.index(biblio, TRUE)
 #' @export
 h.index <- function(biblio, fulldata = FALSE){
-
-  countries = getCountries(biblio)
 
   #order biblio
   biblio = biblio[order(biblio$TC, decreasing = TRUE), ]
@@ -107,21 +110,25 @@ h.index <- function(biblio, fulldata = FALSE){
 
 #' I-index.
 #' @description Calculates the i-index (internationalization).
-#' @param biblio A data.frame exported from Web of Science as tab delimited text, full record.
+#' @param biblio A data.frame exported from Web of Science as tab delimited text, full record OR a vector with country frequencies where names are the country names.
 #' @param r if TRUE the i-index is multiplied by the r-index, i.e., weighted according to the expected distribution of GDP values of collaborating countries.
-#' @param h if TRUE the i-index is divided by the h-index to create a measure independent of the latter.
+#' @param h if TRUE the i-index is divided by the h-index to create a measure independent of the latter. In such case 'biblio' must come from WoS.
 #' @param homeCountry A character string specifying the country of origin of the researcher to calculate the r-index if r = TRUE. Look at map$country for the complete list. If NULL, the country with most hits in Web of Science is used.
 #' @param logbase The log base for building the octaves of the r-index if r = TRUE.
 #' @param fulldata if TRUE returns publication and citation counts.
-#' @details The i-index (internationalization) is a measure of scientific collaborations across countries. Calculated as the i number of co-author countries in more than i papers (Cardoso et al. subm.).
+#' @details The i-index (internationalization) is a measure of scientific collaborations across countries. Calculated as the i number of co-author countries in more than i papers (Cardoso et al. 2022).
 #' The weighted version of the index multiplies its raw value by the square rooted difference between observed and expected distribution of GDP per capita of countries constituting the index (function RAT::represent).
 #' The standardized distribution divides the i-index (weighted or not) by the h-index as these two are usually correlated.
 #' @return The i-index value. If fulldata = TRUE a list with full data.
-#' @references Cardoso, P., Fukushima, C.S. & Mammola, S. (subm.) Quantifying the internationalization and representativeness of research.
+#' @references Cardoso, P., Fukushima, C.S. & Mammola, S. (2022) Quantifying the internationalization and representativeness in research. Trends in Ecology and Evolution, 37: 725-728.
 #' @examples data(biblio)
 #' i.index(biblio)
 #' i.index(biblio, r = TRUE, fulldata = TRUE)
 #' i.index(biblio, r = TRUE, h = TRUE, logbase = 10, fulldata = TRUE)
+#'
+#' biblio = c(5, 3, 2, 1)
+#' names(biblio) = c("Finland", "Portugal", "Brazil", "Italy")
+#' i.index(biblio)
 #' @export
 i.index <- function(biblio, r = FALSE, h = FALSE, homeCountry = NULL, logbase = 2, fulldata = FALSE){
 
@@ -149,16 +156,20 @@ i.index <- function(biblio, r = FALSE, h = FALSE, homeCountry = NULL, logbase = 
 
 #' R-index.
 #' @description Calculates the r-index (representativeness).
-#' @param biblio A data.frame exported from Web of Science as tab delimited text, full record.
+#' @param biblio A data.frame exported from Web of Science as tab delimited text, full record OR a vector with country frequencies where names are the country names.
 #' @param homeCountry A character string specifying the country of origin of the researcher. Look at map$country for the complete list. If NULL, the country with most hits in Web of Science is used.
 #' @param logbase The log base for building the octaves.
 #' @param plot plots the expected and observed distribution of collaborations according to GDP.
-#' @details The r-index (representativeness) is a measure of the overlap between observed and expected distributions of GDP per capita of collaborating countries (Cardoso et al. subm.).
+#' @details The r-index (representativeness) is a measure of the overlap between observed and expected distributions of GDP per capita of collaborating countries (Cardoso et al. 2022).
 #' The abundance distribution of log(GDP per capita) of countries in the collaborators list is calculated (using octaves). This is compared with the global distribution of GDPs by using the overlap of both lists.
 #' @return The r-index value.
-#' @references Cardoso, P., Fukushima, C.S. & Mammola, S. (subm.) Quantifying the internationalization and representativeness of research.
+#' @references Cardoso, P., Fukushima, C.S. & Mammola, S. (2022) Quantifying the internationalization and representativeness in research. Trends in Ecology and Evolution, 37: 725-728.
 #' @examples data(biblio)
 #' r.index(biblio)
+#' r.index(biblio, plot = TRUE)
+#'
+#' biblio = c(5, 3, 2, 1)
+#' names(biblio) = c("Finland", "Portugal", "Brazil", "Italy")
 #' r.index(biblio, plot = TRUE)
 #' @export
 r.index <- function(biblio, homeCountry = NULL, logbase = 2, plot = FALSE){
@@ -201,7 +212,7 @@ r.index <- function(biblio, homeCountry = NULL, logbase = 2, plot = FALSE){
 
 #' Map of international collaboration.
 #' @description Generates a network of international collaboration.
-#' @param biblio A data.frame exported from Web of Science as tab delimited text, full record.
+#' @param biblio A data.frame exported from Web of Science as tab delimited text, full record OR a vector with country frequencies where names are the country names.
 #' @param homeCountry A character string specifying the country of origin of the researcher. Look at map$country for the complete list. If NULL, the country with most hits in Web of Science is used.
 #' @param ext extent of the bounding box of the map in decimal degrees (minX, maxX, minY, maxY).
 #' @param sea.col A character indicating the color of the sea.
@@ -225,6 +236,10 @@ r.index <- function(biblio, homeCountry = NULL, logbase = 2, plot = FALSE){
 #' @return A map with the network of collaborations.
 #' @examples data(biblio)
 #' i.map(biblio, country.size.proportional = TRUE)
+#'
+#' biblio = c(5, 3, 2, 1)
+#' names(biblio) = c("Finland", "Portugal", "Brazil", "Italy")
+#' i.map(biblio)
 #' @export
 i.map <- function(biblio, homeCountry = NULL,
                   ext = c(-180, 180, -55, 90),

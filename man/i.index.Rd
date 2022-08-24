@@ -14,11 +14,11 @@ i.index(
 )
 }
 \arguments{
-\item{biblio}{A data.frame exported from Web of Science as tab delimited text, full record.}
+\item{biblio}{A data.frame exported from Web of Science as tab delimited text, full record OR a vector with country frequencies where names are the country names.}
 
 \item{r}{if TRUE the i-index is multiplied by the r-index, i.e., weighted according to the expected distribution of GDP values of collaborating countries.}
 
-\item{h}{if TRUE the i-index is divided by the h-index to create a measure independent of the latter.}
+\item{h}{if TRUE the i-index is divided by the h-index to create a measure independent of the latter. In such case 'biblio' must come from WoS.}
 
 \item{homeCountry}{A character string specifying the country of origin of the researcher to calculate the r-index if r = TRUE. Look at map$country for the complete list. If NULL, the country with most hits in Web of Science is used.}
 
@@ -33,7 +33,7 @@ The i-index value. If fulldata = TRUE a list with full data.
 Calculates the i-index (internationalization).
 }
 \details{
-The i-index (internationalization) is a measure of scientific collaborations across countries. Calculated as the i number of co-author countries in more than i papers (Cardoso et al. subm.).
+The i-index (internationalization) is a measure of scientific collaborations across countries. Calculated as the i number of co-author countries in more than i papers (Cardoso et al. 2022).
 The weighted version of the index multiplies its raw value by the square rooted difference between observed and expected distribution of GDP per capita of countries constituting the index (function RAT::represent).
 The standardized distribution divides the i-index (weighted or not) by the h-index as these two are usually correlated.
 }
@@ -42,7 +42,11 @@ data(biblio)
 i.index(biblio)
 i.index(biblio, r = TRUE, fulldata = TRUE)
 i.index(biblio, r = TRUE, h = TRUE, logbase = 10, fulldata = TRUE)
+
+biblio = c(5, 3, 2, 1)
+names(biblio) = c("Finland", "Portugal", "Brazil", "Italy")
+i.index(biblio)
 }
 \references{
-Cardoso, P., Fukushima, C.S. & Mammola, S. (subm.) Quantifying the internationalization and representativeness of research.
+Cardoso, P., Fukushima, C.S. & Mammola, S. (2022) Quantifying the internationalization and representativeness in research. Trends in Ecology and Evolution, 37: 725-728.
 }

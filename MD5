@@ -1,11 +1,11 @@
-c484caba1c3d5681553186cd61e1f119 *DESCRIPTION
+221296b6016ac40c367fb9bd496730dc *DESCRIPTION
 4ec5796165bef40ce02d4657400a3cb9 *NAMESPACE
-134eaad1dcb53b1d68f24e698f4b1ba1 *R/RAT.R
+978c9f39abca5b4c81c7148efba3414d *R/RAT.R
 e57bc7eecd0c6e6c00188b1277b35f63 *data/biblio.rda
 7bbac4306f4f4051220cb1205eb6e25b *data/map.rda
 9bd0a50a472311936eb2640378189d15 *man/biblio.Rd
 f8e67e575ead90e6201998d9bf55f76c *man/h.index.Rd
-a4b66167d4e36f22d23cbceacf697213 *man/i.index.Rd
-830dcc665bda9bf4c873f1a45dd7a0a8 *man/i.map.Rd
+2e688dca9f152c56a89045bb786ee8ba *man/i.index.Rd
+98f2d545a74a42685e70b07e25fe0754 *man/i.map.Rd
 55500e1b28e8b14b36a49b122b78e637 *man/map.Rd
-23e679bc37e97d9fde50d66de271fa75 *man/r.index.Rd
+fd9bdfb23eeed860e0861eb42abc3c7f *man/r.index.Rd
